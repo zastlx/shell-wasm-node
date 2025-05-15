@@ -53,7 +53,7 @@ export const imports = {
             return addToExternrefTable(mockWindow.document, getWasm());
         },
         __wbg_get_e27dfaeb6f46bd45: () => {
-            // console.log("__wbg_get_e27dfaeb6f46bd45");
+            console.log("__wbg_get_e27dfaeb6f46bd45");
             return new Proxy({
                 toString: () => "test",
                 valueOf: () => "test",
@@ -69,7 +69,7 @@ export const imports = {
             });
         },
         __wbg_instanceof_Element_0af65443936d5154: () => {
-            // console.log("__wbg_instanceof_Element_0af65443936d5154");
+            console.log("__wbg_instanceof_Element_0af65443936d5154");
             return true;
         },
         __wbg_instanceof_HtmlScriptElement_2e62e6b65dda86a4: (...args: any[]) => {
@@ -143,7 +143,7 @@ export const imports = {
             console.trace("__wbg_static_accessor_WINDOW_5de37043a91a9c40", args);
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
-            // console.log("__wbg_textContent_215d0f87d539368a");
+            console.log("__wbg_textContent_215d0f87d539368a");
             const [ptr, len] = passStringToWasm(element.textContent, getWasm());
 
             const dv = new DataView(getWasm().memory.buffer);
