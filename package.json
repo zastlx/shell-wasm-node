@@ -1,0 +1,19 @@
+{
+	"name": "shell-wasm-node",
+	"module": "src/index.ts",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"start": "bun run src/index.ts",
+		"startNode": "node --run build && node dist/index.js",
+		"build": "tsc && ts-add-js-extension --dir dist"
+	},
+	"dependencies": {
+		"axios": "^1.9.0"
+	},
+	"devDependencies": {
+		"@types/bun": "latest",
+		"ts-add-js-extension": "^1.6.5",
+		"typescript": "^5"
+	}
+}
