@@ -36,8 +36,8 @@ const validate = (input: string) => {
 // NOTE: all the imports will log their name when they are called, this can help with seeing what the WASM is doing.
 
 // this will output the transformed normal js code to out/shellshock.js
-const { data } = await axios.get("https://shellshock.io/js/shellshock.js?" + Date.now());
-process(data);
+// const { data } = await axios.get("https://shellshock.io/js/shellshock.js?" + Date.now());
+// process(data);
 
 // outputs the result of wasm.validate (window.validate)
 // console.log(`validate("test"): ${validate("test")}`);
