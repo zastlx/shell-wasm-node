@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "geicobot",
+      "name": "shell-wasm-node",
       "dependencies": {
         "axios": "^1.9.0",
         "ts-add-js-extension": "^1.6.5",
