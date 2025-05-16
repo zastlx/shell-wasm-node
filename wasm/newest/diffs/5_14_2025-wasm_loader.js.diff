@@ -1,0 +1,161 @@
+diff --git a/wasm/5_14_2025/wasm_loader.js b/wasm/newest/wasm_loader.js
+index de7e0ac..255b0c8 100644
+--- a/wasm/5_14_2025/wasm_loader.js
++++ b/wasm/newest/wasm_loader.js
+@@ -1,6 +1,3 @@
+-// @ts-nocheck
+-// this is the current wasm_loader.js for the version of the wasm file in this repo
+-
+ let wasm;
+ 
+ function addToExternrefTable0(obj) {
+@@ -105,37 +102,6 @@ function getDataViewMemory0() {
+     return cachedDataViewMemory0;
+ }
+ 
+-const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
+-    ? { register: () => { }, unregister: () => { } }
+-    : new FinalizationRegistry(state => {
+-        wasm.__wbindgen_export_5.get(state.dtor)(state.a, state.b)
+-    });
+-
+-function makeMutClosure(arg0, arg1, dtor, f) {
+-    const state = { a: arg0, b: arg1, cnt: 1, dtor };
+-    const real = (...args) => {
+-        // First up with a closure we increment the internal reference
+-        // count. This ensures that the Rust closure environment won't
+-        // be deallocated while we're invoking it.
+-        state.cnt++;
+-        const a = state.a;
+-        state.a = 0;
+-        try {
+-            return f(a, state.b, ...args);
+-        } finally {
+-            if (--state.cnt === 0) {
+-                wasm.__wbindgen_export_5.get(state.dtor)(a, state.b);
+-                CLOSURE_DTORS.unregister(state);
+-            } else {
+-                state.a = a;
+-            }
+-        }
+-    };
+-    real.original = state;
+-    CLOSURE_DTORS.register(real, state, state);
+-    return real;
+-}
+-
+ function debugString(val) {
+     // primitive types
+     const type = typeof val;
+@@ -243,14 +209,6 @@ export function validate(input) {
+     }
+ }
+ 
+-function __wbg_adapter_18(arg0, arg1) {
+-    wasm._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h573d6777e73915f0(arg0, arg1);
+-}
+-
+-function __wbg_adapter_21(arg0, arg1, arg2) {
+-    wasm.closure28_externref_shim(arg0, arg1, arg2);
+-}
+-
+ async function __wbg_load(module, imports) {
+     if (typeof Response === 'function' && module instanceof Response) {
+         if (typeof WebAssembly.instantiateStreaming === 'function') {
+@@ -301,10 +259,6 @@ function __wbg_get_imports() {
+             return ret;
+         }, arguments)
+     };
+-    imports.wbg.__wbg_clearTimeout_5a54f8841c30079a = function (arg0) {
+-        const ret = clearTimeout(arg0);
+-        return ret;
+-    };
+     imports.wbg.__wbg_createElement_8c9931a732ee2fea = function () {
+         return handleError(function (arg0, arg1, arg2) {
+             const ret = arg0.createElement(getStringFromWasm0(arg1, arg2));
+@@ -357,10 +311,6 @@ function __wbg_get_imports() {
+         const ret = arg0.length;
+         return ret;
+     };
+-    imports.wbg.__wbg_location_350d99456c2f3693 = function (arg0) {
+-        const ret = arg0.location;
+-        return ret;
+-    };
+     imports.wbg.__wbg_newnoargs_105e471475aaf50 = function (arg0, arg1) {
+         const ret = new Function(getStringFromWasm0(arg0, arg1));
+         return ret;
+@@ -375,28 +325,6 @@ function __wbg_get_imports() {
+             return ret;
+         }, arguments)
+     };
+-    imports.wbg.__wbg_queueMicrotask_97d92b4fcc8a61c5 = function (arg0) {
+-        queueMicrotask(arg0);
+-    };
+-    imports.wbg.__wbg_queueMicrotask_d3219def82552485 = function (arg0) {
+-        const ret = arg0.queueMicrotask;
+-        return ret;
+-    };
+-    imports.wbg.__wbg_resolve_4851785c9c5f573d = function (arg0) {
+-        const ret = Promise.resolve(arg0);
+-        return ret;
+-    };
+-    imports.wbg.__wbg_setTimeout_db2dbaeefb6f39c7 = function () {
+-        return handleError(function (arg0, arg1) {
+-            const ret = setTimeout(arg0, arg1);
+-            return ret;
+-        }, arguments)
+-    };
+-    imports.wbg.__wbg_sethref_7eb69a6b9ae98056 = function () {
+-        return handleError(function (arg0, arg1, arg2) {
+-            arg0.href = getStringFromWasm0(arg1, arg2);
+-        }, arguments)
+-    };
+     imports.wbg.__wbg_settextContent_d29397f7b994d314 = function (arg0, arg1, arg2) {
+         arg0.textContent = arg1 === 0 ? undefined : getStringFromWasm0(arg1, arg2);
+     };
+@@ -423,27 +351,6 @@ function __wbg_get_imports() {
+         getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+         getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+     };
+-    imports.wbg.__wbg_then_44b73946d2fb3e7d = function (arg0, arg1) {
+-        const ret = arg0.then(arg1);
+-        return ret;
+-    };
+-    imports.wbg.__wbindgen_cb_drop = function (arg0) {
+-        const obj = arg0.original;
+-        if (obj.cnt-- == 1) {
+-            obj.a = 0;
+-            return true;
+-        }
+-        const ret = false;
+-        return ret;
+-    };
+-    imports.wbg.__wbindgen_closure_wrapper281 = function (arg0, arg1, arg2) {
+-        const ret = makeMutClosure(arg0, arg1, 22, __wbg_adapter_18);
+-        return ret;
+-    };
+-    imports.wbg.__wbindgen_closure_wrapper295 = function (arg0, arg1, arg2) {
+-        const ret = makeMutClosure(arg0, arg1, 29, __wbg_adapter_21);
+-        return ret;
+-    };
+     imports.wbg.__wbindgen_debug_string = function (arg0, arg1) {
+         const ret = debugString(arg1);
+         const ptr1 = passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+@@ -461,10 +368,6 @@ function __wbg_get_imports() {
+         table.set(offset + 3, false);
+         ;
+     };
+-    imports.wbg.__wbindgen_is_function = function (arg0) {
+-        const ret = typeof (arg0) === 'function';
+-        return ret;
+-    };
+     imports.wbg.__wbindgen_is_undefined = function (arg0) {
+         const ret = arg0 === undefined;
+         return ret;
+@@ -545,4 +448,4 @@ async function __wbg_init(module_or_path) {
+ }
+ 
+ export { initSync };
+-export { __wbg_init as init };
+\ No newline at end of file
++export { __wbg_init as init };

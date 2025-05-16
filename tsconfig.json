@@ -24,6 +24,7 @@
 		"noPropertyAccessFromIndexSignature": false
 	},
 	"include": [
-		"src/**/*.ts"
+		"src/**/*.ts",
+		"wasm/newest/imports.ts"
 	]
 }

@@ -1,9 +1,9 @@
+// to change the version of the WASM just change "newest" to the version you want to use
 import { readFile } from "fs/promises";
-import { imports } from "./imports";
-import { getStringFromWasm, passStringToWasm, type iWasmExports } from "./utils";
-import axios from "axios";
-
-const wasmBytes = await readFile(new URL("../wasm/wasm_loader.wasm", import.meta.url));
+import { imports } from "../wasm/newest/imports";
+import { type iWasmExports } from "../wasm/newest/imports";
+import { getStringFromWasm, passStringToWasm } from "./utils";
+const wasmBytes = await readFile(new URL("../wasm/newest/wasm_loader.wasm", import.meta.url));
 
 const wasm = await WebAssembly.instantiate(wasmBytes, imports);
 const exports = wasm.instance.exports as unknown as iWasmExports;
@@ -13,7 +13,7 @@ export const getWasm = (): iWasmExports => {
 }
 
 const process = (str: string) => {
-    const [ptr, len] = passStringToWasm(str, exports);
+    const [ptr, len] = passStringToWasm(str);
     exports.process(ptr, len);
 }
 
@@ -22,12 +22,12 @@ const validate = (input: string) => {
     let retLen: number;
 
     try {
-        const [ptr, len] = passStringToWasm(input, exports);
+        const [ptr, len] = passStringToWasm(input);
         const ret = exports.validate(ptr, len);
 
         retPtr = ret[0];
         retLen = ret[1];
-        return getStringFromWasm(retPtr, retLen, exports);
+        return getStringFromWasm(retPtr, retLen);
     } finally {
         exports.__wbindgen_free(retPtr!, retLen!, 1);
     }
@@ -40,7 +40,9 @@ const validate = (input: string) => {
 // process(data);
 
 // outputs the result of wasm.validate (window.validate)
-// console.log(`validate("test"): ${validate("test")}`);
+// WARNING: this is broken on the newest WASM and I'm not sure why, it seems like it gets stuck in an very very long for loop, it will work eventually but it will take FOREVER
+// if you plan to use this i would suggest using the 5_14_2025 version of the WASM, which has the same SALT but without the loop
+//console.log(`validate("test"): ${validate("test")}`);
 
 // runs wasm.start not 100% sure what it does
 // exports.start();

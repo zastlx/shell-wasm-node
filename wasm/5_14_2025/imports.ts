@@ -1,8 +1,60 @@
+// the version of imports.ts for 5_14_2025 wasm
 import { mkdir } from "fs/promises";
-import { getWasm } from "./index";
-import { addToExternrefTable, getStringFromWasm, makeMutClosure, passStringToWasm } from "./utils";
+import { getWasm } from "../../src/index";
+import { addToExternrefTable, getStringFromWasm, passStringToWasm } from "../../src/utils";
 import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
+
+export interface iWasmExports {
+    closure28_externref_shim: (a: any, b: any, c: any) => void;
+    memory: WebAssembly.Memory;
+    process: (ptr: number, len: number) => void;
+    start: () => void;
+    validate: (ptr: number, len: number) => [number, number]; // sha256 with a salt?
+    verify: () => void;
+    __externref_table_alloc: () => number;
+    __wbindgen_exn_store: () => void;
+    __wbindgen_export_2: WebAssembly.Table;
+    __wbindgen_export_5: WebAssembly.Table;
+    __wbindgen_free: (ptr: number, len: number, align: number) => void;
+    __wbindgen_malloc: (len: number, align: number) => number;
+    __wbindgen_realloc: () => void;
+    __wbindgen_start: () => void;
+    _dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h573d6777e73915f0: (a: any, b: any) => void; // so aids
+}
+
+// only for this version so moved here
+const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => { }, unregister: () => { } }
+    : new FinalizationRegistry((state: any) => {
+        (getWasm() as iWasmExports).__wbindgen_export_5.get(state.dtor)(state.a, state.b)
+    });
+
+// this seems to be used to run a function in the wasm from js, e.g a callback
+export const makeMutClosure = (arg0: any, arg1: any, dtor: any, f: any, wasm: iWasmExports) => {
+    const state = { a: arg0, b: arg1, cnt: 1, dtor };
+    const real = (...args: any[]) => {
+        // First up with a closure we increment the internal reference
+        // count. This ensures that the Rust closure environment won't
+        // be deallocated while we're invoking it.
+        state.cnt++;
+        const a = state.a;
+        state.a = 0;
+        try {
+            return f(a, state.b, ...args);
+        } finally {
+            if (--state.cnt === 0) {
+                wasm.__wbindgen_export_5.get(state.dtor)(a, state.b);
+                CLOSURE_DTORS.unregister(state);
+            } else {
+                state.a = a;
+            }
+        }
+    };
+    real.original = state;
+    CLOSURE_DTORS.register(real, state, state);
+    return real;
+}
 
 const mockWindow = {
     queueMicrotask: (fn: () => void) => {
@@ -31,7 +83,7 @@ export const imports = {
         },
         __wbg_body_942ea927546a04ba: (...args: any[]) => {
             console.log("__wbg_body_942ea927546a04ba");
-            return addToExternrefTable(args[0].body, getWasm());
+            return addToExternrefTable(args[0].body);
         },
         __wbg_call_672a4d21634d4a24: (...args: any[]) => {
             console.trace("__wbg_call_672a4d21634d4a24", args);
@@ -41,16 +93,16 @@ export const imports = {
             clearTimeout(args[0]);
         },
         __wbg_createElement_8c9931a732ee2fea: (...args: any[]) => {
-            console.log("__wbg_createElement_8c9931a732ee2fea", getStringFromWasm(args[1], args[2], getWasm()));
+            console.log("__wbg_createElement_8c9931a732ee2fea", getStringFromWasm(args[1], args[2]));
             return element;
         },
         __wbg_currentScript_696dfba63dbe2fbe: (...args: any[]) => {
             console.log("__wbg_currentScript_696dfba63dbe2fbe");
-            return addToExternrefTable(args[0].currentScript, getWasm());
+            return addToExternrefTable(args[0].currentScript);
         },
         __wbg_document_d249400bd7bd996d: () => {
             console.log("__wbg_document_d249400bd7bd996d");
-            return addToExternrefTable(mockWindow.document, getWasm());
+            return addToExternrefTable(mockWindow.document);
         },
         __wbg_get_e27dfaeb6f46bd45: () => {
             console.log("__wbg_get_e27dfaeb6f46bd45");
@@ -96,7 +148,7 @@ export const imports = {
             return Date.now();
         },
         __wbg_querySelectorAll_40998fd748f057ef: (...args: any[]) => {
-            const query = getStringFromWasm(args[1], args[2], getWasm());
+            const query = getStringFromWasm(args[1], args[2]);
             console.log(`__wbg_querySelectorAll_40998fd748f057ef called with ${query}`);
             return [];
         },
@@ -119,12 +171,12 @@ export const imports = {
         __wbg_sethref_7eb69a6b9ae98056: (...args: any[]) => {
             console.log("__wbg_sethref_7eb69a6b9ae98056");
             console.trace();
-            const targetHref = getStringFromWasm(args[1], args[2], getWasm());
+            const targetHref = getStringFromWasm(args[1], args[2]);
             console.log("attempted to redirect to", targetHref);
         },
         __wbg_settextContent_d29397f7b994d314: async (...args: any[]) => {
             console.log("__wbg_settextContent_d29397f7b994d314");
-            element.textContent = getStringFromWasm(args[1], args[2], getWasm());
+            element.textContent = getStringFromWasm(args[1], args[2]);
 
             if (!(await existsSync("out"))) await mkdir("out");
             await writeFile("out/shellshock.js", element.textContent);
@@ -137,16 +189,16 @@ export const imports = {
         },
         __wbg_static_accessor_SELF_37c5d418e4bf5819: (...args: any[]) => {
             console.log("__wbg_static_accessor_SELF_37c5d418e4bf5819");
-            return addToExternrefTable(mockWindow, getWasm());
+            return addToExternrefTable(mockWindow);
         },
         __wbg_static_accessor_WINDOW_5de37043a91a9c40: (...args: any[]) => {
             console.trace("__wbg_static_accessor_WINDOW_5de37043a91a9c40", args);
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
             console.log("__wbg_textContent_215d0f87d539368a");
-            const [ptr, len] = passStringToWasm(element.textContent, getWasm());
+            const [ptr, len] = passStringToWasm(element.textContent);
 
-            const dv = new DataView(getWasm().memory.buffer);
+            const dv = new DataView((getWasm() as iWasmExports).memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);
             dv.setInt32(outPtr + 4 * 0, ptr, true);
         },
@@ -166,14 +218,14 @@ export const imports = {
         __wbindgen_closure_wrapper281: (...args: any[]) => {
             console.log("__wbindgen_closure_wrapper281");
             return makeMutClosure(args[0], args[1], 22, (...args: any[]) => {
-                getWasm()._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h573d6777e73915f0(args[0], args[1]);
-            }, getWasm());
+                (getWasm() as iWasmExports)._dyn_core__ops__function__FnMut_____Output___R_as_wasm_bindgen__closure__WasmClosure___describe__invoke__h573d6777e73915f0(args[0], args[1]);
+            }, (getWasm() as iWasmExports));
         },
         __wbindgen_closure_wrapper295: (...args: any[]) => {
             console.log("__wbindgen_closure_wrapper295");
             return makeMutClosure(args[0], args[1], 29, (...args: any[]) => {
-                getWasm().closure28_externref_shim(args[0], args[1], args[2]);
-            }, getWasm());
+                (getWasm() as iWasmExports).closure28_externref_shim(args[0], args[1], args[2]);
+            }, (getWasm() as iWasmExports));
         },
         __wbindgen_debug_string: (...args: any[]) => {
             console.trace("__wbindgen_debug_string", args);
