@@ -59,10 +59,7 @@ export const makeMutClosure = (arg0: any, arg1: any, dtor: any, f: any, wasm: iW
 const mockWindow = {
     queueMicrotask: (fn: () => void) => {
         console.log("window.queueMicrotask called with", fn);
-        // if this is not commented out it calls setTimeout and loops over all "p" elements and checks for something in the textContent of it, not sure what it's checking for. 
-        // returning the js code seems to stop it from calling the set href, 
-        // if you pass anything else it trys to set the href,
-        // i dont know what it's checking for but it's something in the script code
+        // if this is not commented out it calls setTimeout and loops over all "p" elements and checks "Shell Shockers" and will set href if it doesn't find it
         fn();
     },
     document: {
@@ -134,7 +131,7 @@ export const imports = {
         },
         __wbg_length_49b2ba67f0897e97: () => {
             console.log("__wbg_length_49b2ba67f0897e97");
-            return 132; // amount of p elements on shell without any guis, dunno if this actually matters
+            return 1; // have the loop fire the least amount of times as possible for best efficiency
         },
         __wbg_location_350d99456c2f3693: () => {
             const location = {};
@@ -196,7 +193,7 @@ export const imports = {
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
             console.log("__wbg_textContent_215d0f87d539368a");
-            const [ptr, len] = passStringToWasm(element.textContent);
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Shell Shockers");
 
             const dv = new DataView((getWasm() as iWasmExports).memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);
