@@ -2,7 +2,7 @@ import { mkdir } from "fs/promises";
 import { getWasm } from "../../src/index";
 import { addToExternrefTable, getStringFromWasm, passStringToWasm } from "../../src/utils";
 import { writeFile } from "fs/promises";
-import { existsSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 
 export interface iWasmExports {
     memory: WebAssembly.Memory;
@@ -57,22 +57,17 @@ export const imports = {
         },
         __wbg_get_e27dfaeb6f46bd45: () => {
             console.log("__wbg_get_e27dfaeb6f46bd45");
-            return new Proxy({
-                toString: () => {
-                    console.log("call toStr");
-                    return "[object HTMLParagraphElement]";
-                },
-                valueOf: function () { console.log("call valueOf"); return this; },
-            }, {
+            return new Proxy({}, {
                 get: (target: Record<string, any>, prop: string) => {
-                    // console.log("access", prop, target, target[prop]);
-                    console.trace("acess", prop);
-
-                    if (prop.toString().includes("toStringTag")) {
-                        console.log("toStrTag")
-                        return () => "HTMLParagraphElement";
+                    if (prop.toString().includes("toPrim")) {  // Symbol.toPrimitive
+                        return (hint: string) => {
+                            if (hint === "number") return 1; // magic number seems to be required
+                        }
                     }
-                    return target[prop];
+                },
+                set: (target: Record<string, any>, prop: string, value: any) => {
+                    target[prop] = value;
+                    return true;
                 }
             });
         },
@@ -88,9 +83,9 @@ export const imports = {
             console.log("__wbg_instanceof_Window_def73ea0955fc569");
             return true;
         },
-        __wbg_length_49b2ba67f0897e97: () => {
-            console.log("__wbg_length_49b2ba67f0897e97");
-            return 1;// return 132; // amount of p elements on shell without any guis, dunno if this actually matters
+        __wbg_length_49b2ba67f0897e97: (...args: any[]) => {
+            console.log("__wbg_length_49b2ba67f0897e97", args);
+            return 1; // have the loop fire the least amount of times as possible for best efficiency
         },
         __wbg_newnoargs_105ed471475aaf50: () => {
             console.trace("__wbg_newnoargs_105ed471475aaf50");
@@ -102,7 +97,7 @@ export const imports = {
         __wbg_querySelectorAll_40998fd748f057ef: (...args: any[]) => {
             const query = getStringFromWasm(args[1], args[2]);
             console.log(`__wbg_querySelectorAll_40998fd748f057ef called with ${query}`);
-            return [];
+            return [{}];
         },
         __wbg_settextContent_d29397f7b994d314: async (...args: any[]) => {
             console.log("__wbg_settextContent_d29397f7b994d314");
@@ -125,8 +120,8 @@ export const imports = {
             console.trace("__wbg_static_accessor_WINDOW_5de37043a91a9c40", args);
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
-            console.log("__wbg_textContent_215d0f87d539368a");
-            const [ptr, len] = passStringToWasm(element.textContent);
+            console.log("__wbg_textContent_215d0f87d539368a", outPtr);
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Shell Shockers");
 
             const dv = new DataView(getWasm().memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);

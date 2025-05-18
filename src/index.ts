@@ -40,9 +40,8 @@ const validate = (input: string) => {
 // process(data);
 
 // outputs the result of wasm.validate (window.validate)
-// WARNING: this is broken on the newest WASM and I'm not sure why, it seems like it gets stuck in an very very long for loop, it will work eventually but it will take FOREVER
-// if you plan to use this i would suggest using the 5_14_2025 version of the WASM, which has the same SALT but without the loop
-//console.log(`validate("test"): ${validate("test")}`);
+console.log(`validate("test"): ${validate("test")}`);
+
 
 // runs wasm.start not 100% sure what it does
 // exports.start();
