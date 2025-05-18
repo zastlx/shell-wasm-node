@@ -40,8 +40,7 @@ const validate = (input: string) => {
 // process(data);
 
 // outputs the result of wasm.validate (window.validate)
-console.log(`validate("test"): ${validate("test")}`);
-
+// console.log(`validate("test"): ${validate("test")}`);
 
 // runs wasm.start not 100% sure what it does
 // exports.start();

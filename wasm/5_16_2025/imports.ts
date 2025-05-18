@@ -97,7 +97,7 @@ export const imports = {
         __wbg_querySelectorAll_40998fd748f057ef: (...args: any[]) => {
             const query = getStringFromWasm(args[1], args[2]);
             console.log(`__wbg_querySelectorAll_40998fd748f057ef called with ${query}`);
-            return [{}]
+            return [{}];
         },
         __wbg_settextContent_d29397f7b994d314: async (...args: any[]) => {
             console.log("__wbg_settextContent_d29397f7b994d314");
@@ -121,7 +121,7 @@ export const imports = {
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
             console.log("__wbg_textContent_215d0f87d539368a", outPtr);
-            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Shell Shockers and our partners");
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Shell Shockers");
 
             const dv = new DataView(getWasm().memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);

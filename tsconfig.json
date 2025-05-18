@@ -25,6 +25,6 @@
 	},
 	"include": [
 		"src/**/*.ts",
-		"wasm/newest/imports.ts"
+		"wasm/**/*.ts"
 	]
 }
