@@ -37,71 +37,6 @@ function getStringFromWasm0(ptr, len) {
     return cachedTextDecoder.decode(getUint8ArrayMemory0().subarray(ptr, ptr + len));
 }
 
-function debugString(val) {
-    // primitive types
-    const type = typeof val;
-    if (type == 'number' || type == 'boolean' || val == null) {
-        return `${val}`;
-    }
-    if (type == 'string') {
-        return `"${val}"`;
-    }
-    if (type == 'symbol') {
-        const description = val.description;
-        if (description == null) {
-            return 'Symbol';
-        } else {
-            return `Symbol(${description})`;
-        }
-    }
-    if (type == 'function') {
-        const name = val.name;
-        if (typeof name == 'string' && name.length > 0) {
-            return `Function(${name})`;
-        } else {
-            return 'Function';
-        }
-    }
-    // objects
-    if (Array.isArray(val)) {
-        const length = val.length;
-        let debug = '[';
-        if (length > 0) {
-            debug += debugString(val[0]);
-        }
-        for (let i = 1; i < length; i++) {
-            debug += ', ' + debugString(val[i]);
-        }
-        debug += ']';
-        return debug;
-    }
-    // Test for built-in
-    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
-    let className;
-    if (builtInMatches && builtInMatches.length > 1) {
-        className = builtInMatches[1];
-    } else {
-        // Failed to match the standard '[object ClassName]'
-        return toString.call(val);
-    }
-    if (className == 'Object') {
-        // we're a user defined class or Object
-        // JSON.stringify avoids problems with cycles, and is generally much
-        // easier than looping through ownProperties of `val`.
-        try {
-            return 'Object(' + JSON.stringify(val) + ')';
-        } catch (_) {
-            return 'Object';
-        }
-    }
-    // errors
-    if (val instanceof Error) {
-        return `${val.name}: ${val.message}\n${val.stack}`;
-    }
-    // TODO we could test for more things here, like `Set`s and `Map`s.
-    return className;
-}
-
 let WASM_VECTOR_LEN = 0;
 
 const cachedTextEncoder = (typeof TextEncoder !== 'undefined' ? new TextEncoder('utf-8') : { encode: () => { throw Error('TextEncoder not available') } });
@@ -167,6 +102,71 @@ function getDataViewMemory0() {
     return cachedDataViewMemory0;
 }
 
+function debugString(val) {
+    // primitive types
+    const type = typeof val;
+    if (type == 'number' || type == 'boolean' || val == null) {
+        return `${val}`;
+    }
+    if (type == 'string') {
+        return `"${val}"`;
+    }
+    if (type == 'symbol') {
+        const description = val.description;
+        if (description == null) {
+            return 'Symbol';
+        } else {
+            return `Symbol(${description})`;
+        }
+    }
+    if (type == 'function') {
+        const name = val.name;
+        if (typeof name == 'string' && name.length > 0) {
+            return `Function(${name})`;
+        } else {
+            return 'Function';
+        }
+    }
+    // objects
+    if (Array.isArray(val)) {
+        const length = val.length;
+        let debug = '[';
+        if (length > 0) {
+            debug += debugString(val[0]);
+        }
+        for (let i = 1; i < length; i++) {
+            debug += ', ' + debugString(val[i]);
+        }
+        debug += ']';
+        return debug;
+    }
+    // Test for built-in
+    const builtInMatches = /\[object ([^\]]+)\]/.exec(toString.call(val));
+    let className;
+    if (builtInMatches && builtInMatches.length > 1) {
+        className = builtInMatches[1];
+    } else {
+        // Failed to match the standard '[object ClassName]'
+        return toString.call(val);
+    }
+    if (className == 'Object') {
+        // we're a user defined class or Object
+        // JSON.stringify avoids problems with cycles, and is generally much
+        // easier than looping through ownProperties of `val`.
+        try {
+            return 'Object(' + JSON.stringify(val) + ')';
+        } catch (_) {
+            return 'Object';
+        }
+    }
+    // errors
+    if (val instanceof Error) {
+        return `${val.name}: ${val.message}\n${val.stack}`;
+    }
+    // TODO we could test for more things here, like `Set`s and `Map`s.
+    return className;
+}
+
 export function start() {
     wasm.start();
 }
@@ -184,6 +184,10 @@ export function process(input) {
     const ptr0 = passArray8ToWasm0(input, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
     wasm.process(ptr0, len0);
+}
+
+export function verify() {
+    wasm.verify();
 }
 
 /**
@@ -261,9 +265,37 @@ function __wbg_get_imports() {
             return ret;
         }, arguments)
     };
+    imports.wbg.__wbg_currentScript_696dfba63dbe2fbe = function (arg0) {
+        const ret = arg0.currentScript;
+        return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+    };
     imports.wbg.__wbg_document_d249400bd7bd996d = function (arg0) {
         const ret = arg0.document;
         return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+    };
+    imports.wbg.__wbg_get_e27dfaeb6f46bd45 = function (arg0, arg1) {
+        const ret = arg0[arg1 >>> 0];
+        return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+    };
+    imports.wbg.__wbg_instanceof_Element_0af65443936d5154 = function (arg0) {
+        let result;
+        try {
+            result = arg0 instanceof Element;
+        } catch (_) {
+            result = false;
+        }
+        const ret = result;
+        return ret;
+    };
+    imports.wbg.__wbg_instanceof_HtmlScriptElement_2e62e6b65dda86a4 = function (arg0) {
+        let result;
+        try {
+            result = arg0 instanceof HTMLScriptElement;
+        } catch (_) {
+            result = false;
+        }
+        const ret = result;
+        return ret;
     };
     imports.wbg.__wbg_instanceof_Window_def73ea0955fc569 = function (arg0) {
         let result;
@@ -275,6 +307,10 @@ function __wbg_get_imports() {
         const ret = result;
         return ret;
     };
+    imports.wbg.__wbg_length_49b2ba67f0897e97 = function (arg0) {
+        const ret = arg0.length;
+        return ret;
+    };
     imports.wbg.__wbg_newnoargs_105ed471475aaf50 = function (arg0, arg1) {
         const ret = new Function(getStringFromWasm0(arg0, arg1));
         return ret;
@@ -282,6 +318,12 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_now_807e54c39636c349 = function () {
         const ret = Date.now();
         return ret;
+    };
+    imports.wbg.__wbg_querySelectorAll_40998fd748f057ef = function () {
+        return handleError(function (arg0, arg1, arg2) {
+            const ret = arg0.querySelectorAll(getStringFromWasm0(arg1, arg2));
+            return ret;
+        }, arguments)
     };
     imports.wbg.__wbg_settextContent_d29397f7b994d314 = function (arg0, arg1, arg2) {
         arg0.textContent = arg1 === 0 ? undefined : getStringFromWasm0(arg1, arg2);
@@ -301,6 +343,13 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_static_accessor_WINDOW_5de37043a91a9c40 = function () {
         const ret = typeof window === 'undefined' ? null : window;
         return isLikeNone(ret) ? 0 : addToExternrefTable0(ret);
+    };
+    imports.wbg.__wbg_textContent_215d0f87d539368a = function (arg0, arg1) {
+        const ret = arg1.textContent;
+        var ptr1 = isLikeNone(ret) ? 0 : passStringToWasm0(ret, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        var len1 = WASM_VECTOR_LEN;
+        getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
+        getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
     };
     imports.wbg.__wbindgen_debug_string = function (arg0, arg1) {
         const ret = debugString(arg1);
@@ -383,7 +432,7 @@ async function __wbg_init(module_or_path) {
     }
 
     if (typeof module_or_path === 'undefined') {
-        module_or_path = new URL('wasm_loader_bg.wasm?2', import.meta.url);
+        module_or_path = new URL('wasm_loader_bg.wasm', import.meta.url);
     }
     const imports = __wbg_get_imports();
 
