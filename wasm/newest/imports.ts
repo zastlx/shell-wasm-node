@@ -2,7 +2,7 @@ import { mkdir } from "fs/promises";
 import { addToExternrefTable, getStringFromWasm, passStringToWasm } from "../../src/utils";
 import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { getWasm } from '../../src';
+import { getWasm } from "../../src";
 
 interface YawPitch {
     yaw: number;
@@ -10,14 +10,18 @@ interface YawPitch {
     coords: string;
 }
 
+interface CanvasListeners {
+    [key: string]: Set<Function>;
+}
+
 export interface iWasmExports {
     closure30_externref_shim(arg0: any, arg1: any, arg2: any): unknown;
     memory: WebAssembly.Memory;
     process: (ptr: number, len: number) => void;
     start: () => void;
-    validate: (ptr: number, len: number) => [number, number]; // sha256 with a salt? confirmed
+    validate: (ptr: number, len: number) => [number, number]; // sha256 with a salt
     get_yaw_pitch: () => YawPitch;
-    set_mouse_params: (sensitivity: number, invert: number, fov: number, scoped: boolean, ptr: number, len: number) => void;
+    set_mouse_params: (sensitivity: number, invert: number, fov: number, scoped: boolean, unique_id_ptr: number, ptr_len: number) => void;
     __externref_table_alloc: () => number;
     __wbindgen_exn_store: () => void;
     __wbindgen_export_2: WebAssembly.Table;
@@ -28,7 +32,7 @@ export interface iWasmExports {
     __wbindgen_start: () => void;
 }
 
-const CLOSURE_DTORS = (typeof FinalizationRegistry === 'undefined')
+const CLOSURE_DTORS = (typeof FinalizationRegistry === "undefined")
     ? { register: () => { }, unregister: () => { } }
     : new FinalizationRegistry((state: any) => {
         getWasm().__wbindgen_export_5.get(state.dtor)(state.a, state.b)
@@ -39,8 +43,8 @@ export const makeMutClosure = (arg0: any, arg1: any, dtor: any, f: any) => {
     const state = { a: arg0, b: arg1, cnt: 1, dtor };
     const real = (...args: any[]) => {
         // First up with a closure we increment the internal reference
-        // count. This ensures that the Rust closure environment won't
-        // be deallocated while we're invoking it.
+        // count. This ensures that the Rust closure environment won"t
+        // be deallocated while we"re invoking it.
         state.cnt++;
         const a = state.a;
         state.a = 0;
@@ -64,35 +68,32 @@ function __wbg_adapter_22(arg0: any, arg1: any, arg2: any) {
     getWasm().closure30_externref_shim(arg0, arg1, arg2);
 }
 
-const mockCanvas = {
-    id: 'canvas'
-}
-
-interface cocaine {
-    [key: string]: Function;
-}
-
-export const canvasListeners: cocaine = {};
-
 const mockWindow = {
     document: {
         body: {}
     }
 }
 
+const mockCanvas = {
+    id: "canvas"
+}
+
 const element = {
     textContent: "",
 }
 
-let iter = 5;
+export const canvasListeners: CanvasListeners = {};
+
+let iterationCount = 1;
 
 // the mock implementation of all the imports passed to the wasm
 export const imports = {
     wbg: {
         __wbg_addEventListener_90e553fdce254421: (target: any, arg1: any, arg2: any, callback: Function) => {
             const event = getStringFromWasm(arg1, arg2);
-            console.log("__wbg_addEventListener_90e553fdce254421", target, event, callback);
-            canvasListeners[event] = callback;
+            console.log("__wbg_addEventListener_90e553fdce254421");
+            canvasListeners[event] = canvasListeners[event] || new Set();
+            canvasListeners[event].add(callback);
         },
         __wbg_appendChild_8204974b7328bf98: () => {
             console.log("__wbg_appendChild_8204974b7328bf98");
@@ -106,14 +107,14 @@ export const imports = {
             return addToExternrefTable(args[0].body);
         },
         __wbg_call_672a4d21634d4a24: (...args: any[]) => {
-            console.trace("__wbg_call_672a4d21634d4a24", args);
+            console.trace("__wbg_call_672a4d21634d4a24");
         },
         __wbg_childNodes_c4423003f3a9441f: (...args: any[]) => {
-            console.log("__wbg_childNodes_c4423003f3a9441f", args[0]);
+            console.log("__wbg_childNodes_c4423003f3a9441f");
             return [];
         },
         __wbg_createElement_8c9931a732ee2fea: (...args: any[]) => {
-            console.log("__wbg_createElement_8c9931a732ee2fea", getStringFromWasm(args[1], args[2]));
+            console.log("__wbg_createElement_8c9931a732ee2fea");
             return element;
         },
         __wbg_document_d249400bd7bd996d: () => {
@@ -121,27 +122,25 @@ export const imports = {
             return addToExternrefTable(mockWindow.document);
         },
         __wbg_from_2a5d3e218e67aa85: (...args: any[]) => {
-            console.log("__wbg_from_2a5d3e218e67aa85", args);
+            console.log("__wbg_from_2a5d3e218e67aa85");
             return Array.from(args[0]);
         },
         __wbg_getElementById_f827f0d6648718a8: (arg0: any, arg1: any, arg2: any) => {
             const id = getStringFromWasm(arg1, arg2);
-            console.log("__wbg_getElementById_f827f0d6648718a8", arg0, id);
+            console.log("__wbg_getElementById_f827f0d6648718a8");
 
-            if (id === "canvas") return addToExternrefTable(mockCanvas);
-            return addToExternrefTable({}); // TODO: whaT?
+            return addToExternrefTable(mockCanvas);
         },
         __wbg_getGamepads_1f997cef580c9088: (...args: any[]) => {
             console.log("__wbg_getGamepads_1f997cef580c9088");
             return args[0].getGamepads();
         },
         __wbg_get_67b2ba62fc30de12: (...args: any[]) => {
-            console.log("__wbg_get_67b2ba62fc30de12", args[0], args[1]);
+            console.log("__wbg_get_67b2ba62fc30de12");
             return Reflect.get(args[0], args[1]);
         },
         __wbg_get_b9b93047fe3cf45b: (...args: any[]) => {
-            console.log("__wbg_get_b9b93047fe3cf45b", args[0], args[1]);
-            // const ret = arg0[arg1 >>> 0];
+            console.log("__wbg_get_b9b93047fe3cf45b");
             return args[0][args[1] >>> 0];
         },
         __wbg_instanceof_Gamepad_365ec8404255ce00: (...args: any[]) => {
@@ -149,7 +148,7 @@ export const imports = {
             return true;
         },
         __wbg_instanceof_HtmlCanvasElement_2ea67072a7624ac5: (...args: any[]) => {
-            console.log("__wbg_instanceof_HtmlCanvasElement_2ea67072a7624ac5", args[0]);
+            console.log("__wbg_instanceof_HtmlCanvasElement_2ea67072a7624ac5");
             return true;
         },
         __wbg_instanceof_Window_def73ea0955fc569: () => {
@@ -157,34 +156,34 @@ export const imports = {
             return true;
         },
         __wbg_isTrusted_cc994b7949c53593: (...args: any[]) => {
-            console.log("__wbg_isTrusted_cc994b7949c53593", args[0]);
+            console.log("__wbg_isTrusted_cc994b7949c53593");
             return true;
         },
         __wbg_item_8be407c958853a13: (...args: any[]) => {
-            console.log("__wbg_item_8be407c958853a13", args[0], args[1]);
+            console.log("__wbg_item_8be407c958853a13");
             const ret = args[0][args[1] >>> 0];
-            console.log(ret);
+            console.log(ret, args[0]);
             return addToExternrefTable(ret);
         },
         __wbg_length_49b2ba67f0897e97: (...args: any[]) => {
-            console.log("__wbg_length_49b2ba67f0897e97", args[0]);
-            iter--;
-            return iter <= 0 ? 0 : iter;
+            console.log("__wbg_length_49b2ba67f0897e97");
+            iterationCount--;
+            return iterationCount <= 0 ? 0 : iterationCount;
         },
         __wbg_length_e2d2a49132c1b256: (...args: any[]) => {
-            console.log("__wbg_length_e2d2a49132c1b256", args[0]);
+            console.log("__wbg_length_e2d2a49132c1b256");
             return args[0].length;
         },
         __wbg_movementX_1aa05f864931369b: (...args: any[]) => {
-            console.log("__wbg_movementX_1aa05f864931369b", args[0]);
+            console.log("__wbg_movementX_1aa05f864931369b");
             return args[0].movementX;
         },
         __wbg_movementY_8acfedb38a70e624: (...args: any[]) => {
-            console.log("__wbg_movementY_8acfedb38a70e624", args[0]);
+            console.log("__wbg_movementY_8acfedb38a70e624");
             return args[0].movementY;
         },
         __wbg_navigator_1577371c070c8947: (...args: any[]) => {
-            console.log("__wbg_navigator_1577371c070c8947", args[0]);
+            console.log("__wbg_navigator_1577371c070c8947");
             return args[0].navigator;
         },
         __wbg_new_405e22f390576ce2: () => {
@@ -195,15 +194,15 @@ export const imports = {
             console.trace("__wbg_newnoargs_105ed471475aaf50");
         },
         __wbg_nodeType_5e1153141daac26a: (arg0: any) => {
-            console.log("__wbg_nodeType_5e1153141daac26a", arg0);
-            return 3; // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
+            console.log("__wbg_nodeType_5e1153141daac26a");
+            return 3; // TEXT_NODE - https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
         },
         __wbg_now_807e54c39636c349: () => {
             console.log("__wbg_now_807e54c39636c349");
             return Date.now();
         },
         __wbg_set_bb8cecf6a62b9f46: (...args: any[]) => {
-            console.log("__wbg_set_bb8cecf6a62b9f46", args[0], args[1], args[2]);
+            console.log("__wbg_set_bb8cecf6a62b9f46");
             return Reflect.set(args[0], args[1], args[2]);
         },
         __wbg_settextContent_d29397f7b994d314: async (...args: any[]) => {
@@ -214,10 +213,10 @@ export const imports = {
             await writeFile("out/shellshock.js", element.textContent);
         },
         __wbg_static_accessor_GLOBAL_88a902d13a557d07: (...args: any[]) => {
-            console.trace("__wbg_static_accessor_GLOBAL_88a902d13a557d07", args);
+            console.trace("__wbg_static_accessor_GLOBAL_88a902d13a557d07");
         },
         __wbg_static_accessor_GLOBAL_THIS_56578be7e9f832b0: (...args: any[]) => {
-            console.trace("__wbg_static_accessor_GLOBAL_THIS_56578be7e9f832b0", args);
+            console.trace("__wbg_static_accessor_GLOBAL_THIS_56578be7e9f832b0");
         },
         __wbg_static_accessor_SELF_37c5d418e4bf5819: (...args: any[]) => {
             console.log("__wbg_static_accessor_SELF_37c5d418e4bf5819");
@@ -228,8 +227,8 @@ export const imports = {
             return addToExternrefTable(mockWindow);
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
-            console.log("__wbg_textContent_215d0f87d539368a", outPtr);
-            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Blue Wizard Digital");
+            console.log("__wbg_textContent_215d0f87d539368a");
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Blue Wizard Digital"); // bwd if your seeing this your acheving nothing by shoving magic strings into your checks xD
 
             const dv = new DataView(getWasm().memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);
@@ -253,7 +252,7 @@ export const imports = {
             return getStringFromWasm(arg0, arg1);
         },
         __wbindgen_string_get: (arg0: number, arg1: number) => {
-            console.log("__wbindgen_string_get", arg0, arg1);
+            console.log("__wbindgen_string_get");
             const str = getStringFromWasm(arg0, arg1);
             const [ptr, len] = passStringToWasm(str);
             const dv = new DataView(getWasm().memory.buffer);
@@ -261,31 +260,27 @@ export const imports = {
             dv.setInt32(arg0 + 4 * 0, ptr, true);
         },
         __wbindgen_is_undefined: (arg0: any) => {
-            console.log("__wbindgen_is_undefined", arg0);
+            console.log("__wbindgen_is_undefined");
             return arg0 === undefined ? 1 : 0;
         },
         __wbindgen_boolean_get: (arg0: any) => {
-            console.log("__wbindgen_boolean_get", arg0);
+            console.log("__wbindgen_boolean_get");
             const v = arg0;
-            const ret = typeof (v) === 'boolean' ? (v ? 1 : 0) : 2;
+            const ret = typeof (v) === "boolean" ? (v ? 1 : 0) : 2;
             return ret;
         },
         __wbindgen_closure_wrapper100: (arg0: any, arg1: any, arg2: any) => {
+            console.log("__wbindgen_closure_wrapper100");
             return makeMutClosure(arg0, arg1, 31, __wbg_adapter_22);
         },
         __wbindgen_closure_wrapper99: (arg0: any, arg1: any, arg2: any) => {
+            console.log("__wbindgen_closure_wrapper99");
             return makeMutClosure(arg0, arg1, 31, __wbg_adapter_22);
         },
-        /*imports.wbg.__wbindgen_number_get = function (arg0, arg1) {
-            const obj = arg1;
-            const ret = typeof (obj) === 'number' ? obj : undefined;
-            getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
-            getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
-        };*/
         __wbindgen_number_get: (arg0: number, arg1: number) => {
-            console.log("__wbingen_number_get", arg0, arg1);
+            console.log("__wbingen_number_get");
             const obj = arg1;
-            const ret = typeof (obj) === 'number' ? obj : undefined;
+            const ret = typeof (obj) === "number" ? obj : undefined;
             const dv = new DataView(getWasm().memory.buffer);
             dv.setFloat64(arg0 + 8 * 1, ret!, true);
             dv.setInt32(arg0 + 4 * 0, 1, true);

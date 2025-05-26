@@ -42,5 +42,5 @@ export const validate = (input: string) => {
 // outputs the result of wasm.validate (window.validate)
 // console.log(`validate("test"): ${validate("test")}`);
 
-// runs wasm.start not 100% sure what it does
+// wasm.start
 // exports.start();
