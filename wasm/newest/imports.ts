@@ -84,6 +84,8 @@ const element = {
     textContent: "",
 }
 
+let iter = 5;
+
 // the mock implementation of all the imports passed to the wasm
 export const imports = {
     wbg: {
@@ -108,7 +110,7 @@ export const imports = {
         },
         __wbg_childNodes_c4423003f3a9441f: (...args: any[]) => {
             console.log("__wbg_childNodes_c4423003f3a9441f", args[0]);
-            return Array.from({ length: Math.floor(Math.random() * 3) }, (_, i) => `node_${i}`).fill('cocaine');
+            return [];
         },
         __wbg_createElement_8c9931a732ee2fea: (...args: any[]) => {
             console.log("__wbg_createElement_8c9931a732ee2fea", getStringFromWasm(args[1], args[2]));
@@ -166,7 +168,8 @@ export const imports = {
         },
         __wbg_length_49b2ba67f0897e97: (...args: any[]) => {
             console.log("__wbg_length_49b2ba67f0897e97", args[0]);
-            return args[0].length;
+            iter--;
+            return iter <= 0 ? 0 : iter;
         },
         __wbg_length_e2d2a49132c1b256: (...args: any[]) => {
             console.log("__wbg_length_e2d2a49132c1b256", args[0]);
@@ -193,8 +196,7 @@ export const imports = {
         },
         __wbg_nodeType_5e1153141daac26a: (arg0: any) => {
             console.log("__wbg_nodeType_5e1153141daac26a", arg0);
-            if (arg0 === mockWindow.document) return 1;
-            return 1; // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType, 1 might be it sob
+            return 3; // https://developer.mozilla.org/en-US/docs/Web/API/Node/nodeType
         },
         __wbg_now_807e54c39636c349: () => {
             console.log("__wbg_now_807e54c39636c349");
@@ -227,7 +229,7 @@ export const imports = {
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
             console.log("__wbg_textContent_215d0f87d539368a", outPtr);
-            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Shell Shockers and our partners");
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Blue Wizard Digital");
 
             const dv = new DataView(getWasm().memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);

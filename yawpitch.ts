@@ -1,11 +1,6 @@
-import axios from "axios";
-import { getWasm, process, validate } from "./src/index";
+import { getWasm } from "./src/index";
 import { canvasListeners } from "./wasm/newest/imports";
 import { passStringToWasm } from './src/utils';
-
-const { data } = await axios.get("https://shellshock.io/js/shellshock.js?" + Date.now());
-// process(data);
-// console.log(`validate("test"): ${validate("test")}`);
 
 getWasm().start();
 
