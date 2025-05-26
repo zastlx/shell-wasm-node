@@ -12,12 +12,12 @@ export const getWasm = (): iWasmExports => {
     return exports;
 }
 
-const process = (str: string) => {
+export const process = (str: string) => {
     const [ptr, len] = passStringToWasm(str);
     exports.process(ptr, len);
 }
 
-const validate = (input: string) => {
+export const validate = (input: string) => {
     let retPtr: number;
     let retLen: number;
 
