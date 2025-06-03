@@ -3,7 +3,6 @@ import { readFile } from "fs/promises";
 import { imports } from "../wasm/newest/imports";
 import { type iWasmExports } from "../wasm/newest/imports";
 import { getStringFromWasm, passStringToWasm } from "./utils";
-import { writeFileSync } from "fs";
 const wasmBytes = await readFile(new URL("../wasm/newest/wasm_loader.wasm", import.meta.url));
 
 const wasm = await WebAssembly.instantiate(wasmBytes, imports);
@@ -13,10 +12,10 @@ export const getWasm = (): iWasmExports => {
     return exports;
 }
 
-// export const process = (str: string) => {
-//     const [ptr, len] = passStringToWasm(str);
-//     exports.process(ptr, len);
-// }
+export const process = (str: string) => {
+    const [ptr, len] = passStringToWasm(str);
+    exports.process(ptr, len);
+}
 
 export const validate = (input: string) => {
     let retPtr: number;

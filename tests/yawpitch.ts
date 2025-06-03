@@ -1,6 +1,6 @@
-import { getWasm } from "../../src/index";
-import { canvasListeners } from "../../wasm/newest/imports";
-import { passStringToWasm } from "../../src/utils";
+import { getWasm } from "../src/index";
+import { canvasListeners } from "../wasm/newest/imports";
+import { passStringToWasm } from "../src/utils";
 
 let _log = console.log;
 console.log = () => { }
