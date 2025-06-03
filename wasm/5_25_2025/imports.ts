@@ -21,7 +21,6 @@ export interface iWasmExports {
     start: () => void;
     validate: (ptr: number, len: number) => [number, number]; // sha256 with a salt
     get_yaw_pitch: () => YawPitch;
-    reset_yaw_pitch: () => void;
     set_mouse_params: (sensitivity: number, invert: number, fov: number, scoped: boolean, unique_id_ptr: number, ptr_len: number) => void;
     __externref_table_alloc: () => number;
     __wbindgen_exn_store: () => void;
@@ -65,7 +64,7 @@ export const makeMutClosure = (arg0: any, arg1: any, dtor: any, f: any) => {
     return real;
 }
 
-function __wbg_adapter_24(arg0: any, arg1: any, arg2: any) {
+function __wbg_adapter_22(arg0: any, arg1: any, arg2: any) {
     getWasm().closure30_externref_shim(arg0, arg1, arg2);
 }
 
@@ -228,8 +227,8 @@ export const imports = {
             return addToExternrefTable(mockWindow);
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
-            console.log("__wbg_textContent_215d0f87d539368a"); // sigh bwd, is this really necessary?
-            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "\nvar comp_spinner_overlay = {\n\ttemplate: '#spinner-overlay-template',\n\tcomponents: {\n\t\t'wobbly-egg': comp_wobbly_egg\n\t},\n\tprops: ['loc', 'adblockerbanner', 'hideAds', 'adUnit', 'accountDate'],\n\t\n\tdata: function () {\n\t\treturn {\n\t\t\tisShowing: false,\n\t\t\theader: '',\n\t\t\tfooter: '',\n\t\t\tadIsShowing: false,\n\t\t\tisShowTips: false,\n\t\t\ttipKey: null,\n\t\t\ttips: [],\n\t\t\ttip: '',\n\t\t\teggGuyImg: 'img/shellShockers_loadingTipEgg.webp',\n\t\t\tgoodBrowser: true,\n\t\t\tbrowserTipShown: false,\n\t\t}\n\t},\n\n\tmounted() {\n\t\tthis.isNotChrome().then(result => {\n\t\t\tif (result) {\n\t\t\t\tthis.goodBrowser = false;\n\t\t\t}\n\t\t});\n\t},\n\n\tmethods: {\n\t\tshow: function (headerLocKey, footerLocKey, showTips) {\n\t\t\tthis.header = this.loc[headerLocKey];\n\t\t\tthis.footer = this.loc[footerLocKey];\n\t\t\tthis.isShowing = true;\n\t\t\tthis.isShowTips = showTips;\n\t\t},\n\n\t\tshowSpinnerLoadProgress: function (percent) {\n\t\t\tvar msg = this.loc['ui_game_loading'];\n\t\t\tthis.header = this.loc['building_map'];\n\t\t\tthis.footer = '{0}... {1}%'.format(msg, percent);\n\t\t\tthis.isShowTips = true;\n\t\t\tthis.isShowing = true;\n\t\t},\n\n\t\thide: function () {\n\t\t\tthis.isShowing = false;\n\t\t\tthis.isShowTips = this.isShowing;\n\t\t\tthis.$emit('close-display-ad');\n\t\t},\n\n\t\thideDisplayAd() {\n\t\t\tthis.adIsShowing = false;\n\t\t\tconsole.log('do it');\n\t\t},\n\t\tshowDisplayAd() {\n\t\t\tthis.adIsShowing = true;\n\t\t},\n\t\ttoggleDisplayAd() {\n\t\t\treturn this.adIsShowing = this.adIsShowing ? false : true;\n\t\t},\n\t\tgetTipKey() {\n\t\t\tif (!this.accountDate) {\n\t\t\t\tthis.tipKey = 'tipNew_';\n\t\t\t} else {\n\t\t\t\tif (!this.accountDays) {\n\t\t\t\t\tthis.accountDays = Math.ceil((new Date().getTime() - new Date(this.accountDate).getTime()) / (1000 * 3600 * 24));\n\t\t\t\t}\n\t\t\t\tif (this.accountDays <= 14) {\n\t\t\t\t\tthis.tipKey = 'tipNew_';\n\t\t\t\t} else {\n\t\t\t\t\tthis.tipKey = 'tip_';\n\t\t\t\t}\n\t\t\t}\n\t\t},\n\t\trandomTip() {\n\t\t\tif (!this.goodBrowser && !this.browserTipShown) {\n\t\t\t\tthis.tip = 'tip_ofthe_day_107';\n\t\t\t\tthis.browserTipShown = true;\n\t\t\t\treturn;\n\t\t\t}\n\n\t\t\tif (this.tipKey === null) {\n\t\t\t\tthis.getTipKey();\n\t\t\t}\n\n\t\t\tif (this.tips.length === 0) {\n\t\t\t\tObject.keys(this.loc).forEach(key => {\n\t\t\t\t\tif (key.startsWith(this.tipKey)) {\n\t\t\t\t\t\tthis.tips.push(key);\n\t\t\t\t\t}\n\t\t\t\t});\n\t\t\t}\n\t\t\tthis.tip = this.tips[Math.floor(Math.random() * this.tips.length)];\n\t\t},\n\n\t\tasync isNotChrome() {\n\t\t\tif (navigator.userAgentData) {\n\t\t\t\tconst brands = navigator.userAgentData.brands || [];\n\t\t\t\tconst isChrome = brands.some(brand => brand.brand === 'Google Chrome');\n\t\t\t\treturn !isChrome;\n\t\t\t} else {\n\t\t\t\t// Fallback to userAgent for older browsers\n\t\t\t\treturn this.isNotChromeFallback();\n\t\t\t}\n\t\t},\n\t\tisNotChromeFallback() {\n\t\t\tconst ua = navigator.userAgent;\n\t\t\treturn !(ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR'));\n\t\t}\n\t},\n\twatch: {\n\t\tisShowing(val, old) {\n\t\t\tif (val && !old) {\n\t\t\t\tthis.randomTip();\n\t\t\t}\n\t\t}\n\t}\n};\n");
+            console.log("__wbg_textContent_215d0f87d539368a");
+            const [ptr, len] = passStringToWasm(targetElement == element ? element.textContent : "Blue Wizard Digital"); // bwd if your seeing this your acheving nothing by shoving magic strings into your checks xD
 
             const dv = new DataView(getWasm().memory.buffer);
             dv.setInt32(outPtr + 4 * 1, len, true);
@@ -264,23 +263,19 @@ export const imports = {
             console.log("__wbindgen_is_undefined");
             return arg0 === undefined ? 1 : 0;
         },
-        __wbindgen_is_null: (arg0: any) => {
-            console.log("__wbindgen_is_null");
-            return arg0 === null;
-        },
         __wbindgen_boolean_get: (arg0: any) => {
             console.log("__wbindgen_boolean_get");
             const v = arg0;
             const ret = typeof (v) === "boolean" ? (v ? 1 : 0) : 2;
             return ret;
         },
-        __wbindgen_closure_wrapper94: (arg0: any, arg1: any, arg2: any) => {
+        __wbindgen_closure_wrapper100: (arg0: any, arg1: any, arg2: any) => {
             console.log("__wbindgen_closure_wrapper100");
-            return makeMutClosure(arg0, arg1, 31, __wbg_adapter_24);
+            return makeMutClosure(arg0, arg1, 31, __wbg_adapter_22);
         },
-        __wbindgen_closure_wrapper95: (arg0: any, arg1: any, arg2: any) => {
+        __wbindgen_closure_wrapper99: (arg0: any, arg1: any, arg2: any) => {
             console.log("__wbindgen_closure_wrapper99");
-            return makeMutClosure(arg0, arg1, 31, __wbg_adapter_24);
+            return makeMutClosure(arg0, arg1, 31, __wbg_adapter_22);
         },
         __wbindgen_number_get: (arg0: number, arg1: number) => {
             console.log("__wbingen_number_get");
