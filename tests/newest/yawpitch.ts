@@ -31,18 +31,25 @@ const targetYaw = 3.14;
 const targetPitch = 1;
 
 const PI_TWO = 2 * Math.PI;
-const PI = Math.PI;
 const SENSITIVITY = 0.0025;
 
-function calculateMovements(currentYaw: number, currentPitch: number, targetYaw: number, targetPitch: number) {
+const normalizeYaw = (yaw: number) => {
+    return ((yaw % (PI_TWO)) + PI_TWO) % (PI_TWO);
+};
 
-    const yawDiff = ((targetYaw - currentYaw + PI) % PI_TWO) - PI;
+function calculateMovements(currentYaw: number, currentPitch: number, targetYaw: number, targetPitch: number) {
+    const normalizedCurrentYaw = normalizeYaw(currentYaw);
+    const normalizedTargetYaw = normalizeYaw(targetYaw);
+
+    let yawDiff = normalizedTargetYaw - normalizedCurrentYaw;
+    if (Math.abs(yawDiff) > Math.PI) yawDiff = yawDiff > 0 ? yawDiff - PI_TWO : yawDiff + PI_TWO;
+
     const pitchDiff = targetPitch - currentPitch;
 
-    return {
-        movementX: Math.round(-yawDiff / SENSITIVITY),
-        movementY: Math.round(-pitchDiff / SENSITIVITY)
-    };
+    const movementX = Math.round(-yawDiff / SENSITIVITY);
+    const movementY = Math.round(-pitchDiff / SENSITIVITY);
+
+    return { movementX, movementY };
 }
 
 const movements = calculateMovements(old.yaw, old.pitch, targetYaw, targetPitch);
