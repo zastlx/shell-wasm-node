@@ -2,7 +2,7 @@ import { mkdir } from "fs/promises";
 import { addToExternrefTable, getStringFromWasm, passStringToWasm } from "../../src/utils";
 import { writeFile } from "fs/promises";
 import { existsSync } from "fs";
-import { getWasm } from "../../src";
+import { gamepadTargets, getWasm } from "../../src";
 
 interface YawPitch {
     yaw: number;
@@ -21,8 +21,9 @@ export interface iWasmExports {
     start: () => void;
     validate: (ptr: number, len: number) => [number, number]; // sha256 with a salt
     get_yaw_pitch: () => YawPitch;
-    reset_yaw_pitch: () => void;
     set_mouse_params: (sensitivity: number, invert: number, fov: number, scoped: boolean, unique_id_ptr: number, ptr_len: number) => void;
+    reset_yaw_pitch: () => void;
+    poll_gamepad: (gamepadIndex: number, deadzone: number, controllerSpeed: number, scoped: boolean, invert: number, players: object, camera: any, playerId: number, playerTeam: number) => void;
     __externref_table_alloc: () => number;
     __wbindgen_exn_store: () => void;
     __wbindgen_export_2: WebAssembly.Table;
@@ -69,16 +70,6 @@ function __wbg_adapter_24(arg0: any, arg1: any, arg2: any) {
     getWasm().closure30_externref_shim(arg0, arg1, arg2);
 }
 
-const mockWindow = {
-    document: {
-        body: {}
-    }
-}
-
-const mockCanvas = {
-    id: "canvas"
-}
-
 const element = {
     textContent: "",
 }
@@ -101,11 +92,23 @@ export const imports = {
         },
         __wbg_axes_b1da727bd9ea422d: (arg0: any) => {
             console.log("__wbg_axes_b1da727bd9ea422d");
-            return arg0.axes;
+
+            const targetYaw = gamepadTargets.yaw;
+            const targetPitch = gamepadTargets.pitch;
+
+            console.log('yp', targetYaw, targetPitch);
+
+            function f(x: number) {
+                const x1 = 0.31, y1 = 13.285;
+                const x2 = 6, y2 = 12.778;
+                return y1 + ((x - x1) / (x2 - x1)) * (y2 - y1);
+            }
+
+            return [0, 0, -(targetYaw * f(targetYaw)), -targetPitch * f(targetPitch)];
         },
         __wbg_body_942ea927546a04ba: (...args: any[]) => {
             console.log("__wbg_body_942ea927546a04ba");
-            return addToExternrefTable(args[0].body);
+            return addToExternrefTable({});
         },
         __wbg_call_672a4d21634d4a24: (...args: any[]) => {
             console.trace("__wbg_call_672a4d21634d4a24");
@@ -120,21 +123,18 @@ export const imports = {
         },
         __wbg_document_d249400bd7bd996d: () => {
             console.log("__wbg_document_d249400bd7bd996d");
-            return addToExternrefTable(mockWindow.document);
+            return addToExternrefTable({});
         },
         __wbg_from_2a5d3e218e67aa85: (...args: any[]) => {
             console.log("__wbg_from_2a5d3e218e67aa85");
             return Array.from(args[0]);
         },
         __wbg_getElementById_f827f0d6648718a8: (arg0: any, arg1: any, arg2: any) => {
-            const id = getStringFromWasm(arg1, arg2);
             console.log("__wbg_getElementById_f827f0d6648718a8");
-
-            return addToExternrefTable(mockCanvas);
+            return addToExternrefTable({});
         },
         __wbg_getGamepads_1f997cef580c9088: (...args: any[]) => {
-            console.log("__wbg_getGamepads_1f997cef580c9088");
-            return args[0].getGamepads();
+            return [{ _isGetGamepads: 1 }];
         },
         __wbg_get_67b2ba62fc30de12: (...args: any[]) => {
             console.log("__wbg_get_67b2ba62fc30de12");
@@ -210,7 +210,7 @@ export const imports = {
             console.log("__wbg_settextContent_d29397f7b994d314");
             element.textContent = getStringFromWasm(args[1], args[2]);
 
-            if (!(await existsSync("out"))) await mkdir("out");
+            if (!(existsSync("out"))) await mkdir("out");
             await writeFile("out/shellshock.js", element.textContent);
         },
         __wbg_static_accessor_GLOBAL_88a902d13a557d07: (...args: any[]) => {
@@ -221,11 +221,11 @@ export const imports = {
         },
         __wbg_static_accessor_SELF_37c5d418e4bf5819: (...args: any[]) => {
             console.log("__wbg_static_accessor_SELF_37c5d418e4bf5819");
-            return addToExternrefTable(mockWindow);
+            return addToExternrefTable({});
         },
         __wbg_static_accessor_WINDOW_5de37043a91a9c40: (...args: any[]) => {
             console.log("__wbg_static_accessor_WINDOW_5de37043a91a9c40");
-            return addToExternrefTable(mockWindow);
+            return addToExternrefTable({});
         },
         __wbg_textContent_215d0f87d539368a: (outPtr: number, targetElement: any) => {
             console.log("__wbg_textContent_215d0f87d539368a"); // sigh bwd, is this really necessary?
