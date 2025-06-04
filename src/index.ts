@@ -33,6 +33,8 @@ export const validate = (input: string) => {
     }
 }
 
+export const gamepadTargets = { yaw: 0, pitch: 0 };
+
 // NOTE: all the imports will log their name when they are called, this can help with seeing what the WASM is doing.
 
 // this will output the transformed normal js code to out/shellshock.js
